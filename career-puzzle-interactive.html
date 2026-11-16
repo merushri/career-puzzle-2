@@ -1,0 +1,338 @@
+<title>The Career Puzzle</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,600;0,700;0,800&display=swap">
+<style>
+/* Layout: one cobalt stage, a white card holding the six-piece puzzle, controls below. Single committed brand look. */
+:root {
+  --cobalt: #2C4DD8;
+  --cobalt-deep: #1F3AB8;
+  --card: #FFFFFF;
+  --empty: #F3F5FF;
+  --empty-line: #DADDE8;
+  --empty-num: #C3CBEF;
+  --ink: #111111;
+  --grey: #5E6272;
+  --font: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  background: var(--cobalt);
+  color: var(--ink);
+  font-family: var(--font);
+  margin: 0;
+}
+
+.stage {
+  height: 100%;
+  min-height: 540px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-block: 20px 24px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+.card {
+  background: var(--card);
+  border-radius: 14px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 24px clamp(16px, 3vw, 44px) 20px;
+  min-width: 0;
+  min-height: 0;
+}
+
+h1 {
+  font-size: clamp(20px, 3.1vw, 34px);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  text-align: center;
+  text-wrap: balance;
+  margin: 0;
+}
+h1 em { font-style: normal; color: var(--cobalt); }
+
+.board {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  min-width: 0;
+}
+
+.grid {
+  position: relative;
+  width: min(100%, 1320px);
+  max-height: 100%;
+  aspect-ratio: 3 / 1.72;
+  container-type: inline-size;
+}
+
+svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+
+.piece-shape { cursor: pointer; }
+.piece-shape .fill { fill: var(--empty); stroke: var(--empty-line); stroke-width: 2; transition: fill .28s ease, stroke .28s ease; }
+.piece-shape.on .fill { fill: var(--cobalt); stroke: var(--card); stroke-width: 4; }
+.piece-shape:hover .fill { stroke: var(--cobalt); }
+.piece-shape.on:hover .fill { stroke: var(--card); }
+
+.labels {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  pointer-events: none;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  padding: 10% 17%;
+  min-width: 0;
+  overflow: hidden;
+}
+.cell .num {
+  font-size: clamp(22px, 3.2vw, 38px);
+  font-size: clamp(20px, 5cqi, 40px);
+  font-weight: 800;
+  color: var(--empty-num);
+  transition: opacity .2s ease;
+}
+.cell .body { max-width: 100%; }
+.cell .body { display: none; }
+.cell.on .num { display: none; }
+.cell.on .body { display: block; animation: rise .32s ease both; }
+.cell .title {
+  font-size: clamp(12px, 1.55vw, 20px);
+  font-size: clamp(10px, 2.3cqi, 21px);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--card);
+  line-height: 1.15;
+  overflow-wrap: break-word;
+}
+.cell .q {
+  font-size: clamp(10px, 1.1vw, 14px);
+  font-size: clamp(9px, 1.55cqi, 15px);
+  color: var(--card);
+  opacity: .92;
+  margin-top: 5px;
+  line-height: 1.3;
+  overflow-wrap: break-word;
+}
+
+@keyframes rise { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .cell.on .body { animation: none; }
+  .piece-shape .fill { transition: none; }
+}
+
+.closing {
+  text-align: center;
+  color: var(--grey);
+  font-size: clamp(13px, 1.3vw, 17px);
+  min-height: 1.4em;
+  opacity: 0;
+  transition: opacity .35s ease;
+}
+.closing.show { opacity: 1; }
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+button {
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 999px;
+  border: 2px solid rgba(255,255,255,.55);
+  background: transparent;
+  color: #fff;
+  padding: 9px 20px;
+  cursor: pointer;
+}
+button.primary { background: #fff; color: var(--cobalt); border-color: #fff; }
+button:hover { border-color: #fff; }
+button:focus-visible { outline: 3px solid #FFDE59; outline-offset: 2px; }
+
+.count { color: #fff; font-size: 13px; font-weight: 600; opacity: .85; margin-left: 4px; }
+.hint { color: #fff; opacity: .7; font-size: 12px; text-align: center; }
+
+:root[data-export] .controls, :root[data-export] .hint { display: none; }
+
+@media (max-width: 760px) {
+  .grid { aspect-ratio: 3 / 2.2; }
+  .cell { padding: 7% 11%; }
+  .cell .q { display: none; }
+  .cell .title { font-size: clamp(11px, 3cqi, 18px); }
+  .card { padding: 20px 14px 18px; }
+}
+</style>
+
+<div class="stage">
+  <div class="card">
+    <h1>Complete the <em>Career Puzzle</em></h1>
+    <div class="board">
+      <div class="grid">
+        <svg id="svg" viewBox="0 0 600 344" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="labels" id="labels"></div>
+      </div>
+    </div>
+    <p class="closing" id="closing">No single piece decides a career. The picture shows up when all six fit.</p>
+  </div>
+  <div class="controls">
+    <button class="primary" id="next">Reveal next</button>
+    <button id="back">Undo</button>
+    <button id="reset">Reset</button>
+    <span class="count" id="count">0 of 6</span>
+  </div>
+  <p class="hint">Click any piece as the room calls it out, or press space to reveal the next one.</p>
+</div>
+
+<script>
+const PIECES = [
+  { t: "Interests", q: "What do you enjoy doing?" },
+  { t: "Aptitude", q: "What comes naturally to you?" },
+  { t: "Personality & Values", q: "Who are you? What matters to you?" },
+  { t: "Career Opportunities", q: "What options are out there?" },
+  { t: "Practical Factors", q: "Money, location, family. What is realistic?" },
+  { t: "Career Prospects", q: "Where is this field heading?" }
+];
+
+const COLS = 3, ROWS = 2, CW = 200, CH = 172, RAD = 16, NECK = 0.7;
+// sign of each internal seam: +1 means the tab pushes right / down
+const VSEAM = [[1, -1], [-1, 1]];  // [row][col] between col c and c+1
+const HSEAM = [1, -1, 1];          // [col] between row 0 and row 1
+
+function edge(ax, ay, bx, by, nx, ny, sgn) {
+  if (!sgn) return `L${bx},${by}`;
+  let tx = bx - ax, ty = by - ay;
+  const len = Math.hypot(tx, ty); tx /= len; ty /= len;
+  const mx = (ax + bx) / 2, my = (ay + by) / 2;
+  const c = NECK * RAD, a = Math.sqrt(RAD * RAD - c * c);
+  const ux = nx * sgn, uy = ny * sgn;
+  const cx = mx + ux * c, cy = my + uy * c;
+  const th0 = Math.atan2(-c, -a) + 2 * Math.PI, th1 = Math.atan2(-c, a);
+  let d = "";
+  const N = 30;
+  for (let i = 0; i <= N; i++) {
+    const th = th0 + (th1 - th0) * i / N;
+    const px = cx + RAD * (Math.cos(th) * tx + Math.sin(th) * ux);
+    const py = cy + RAD * (Math.cos(th) * ty + Math.sin(th) * uy);
+    d += `L${px.toFixed(2)},${py.toFixed(2)}`;
+  }
+  return d + `L${bx},${by}`;
+}
+
+function piecePath(r, c) {
+  const x = c * CW, y = r * CH;
+  const TL = [x, y], TR = [x + CW, y], BR = [x + CW, y + CH], BL = [x, y + CH];
+  const top = r === 0 ? 0 : -HSEAM[c];
+  const bot = r === 0 ? HSEAM[c] : 0;
+  const right = c < COLS - 1 ? VSEAM[r][c] : 0;
+  const left = c > 0 ? -VSEAM[r][c - 1] : 0;
+  return `M${TL[0]},${TL[1]}`
+    + edge(TL[0], TL[1], TR[0], TR[1], 0, -1, top)
+    + edge(TR[0], TR[1], BR[0], BR[1], 1, 0, right)
+    + edge(BR[0], BR[1], BL[0], BL[1], 0, 1, bot)
+    + edge(BL[0], BL[1], TL[0], TL[1], -1, 0, left)
+    + "Z";
+}
+
+const svg = document.getElementById("svg");
+const labels = document.getElementById("labels");
+svg.setAttribute("viewBox", `0 0 ${COLS * CW} ${ROWS * CH}`);
+svg.setAttribute("preserveAspectRatio", "none");
+
+const shapes = [], cells = [];
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+PIECES.forEach((p, i) => {
+  const r = Math.floor(i / COLS), c = i % COLS;
+  const g = document.createElementNS(SVG_NS, "g");
+  g.setAttribute("class", "piece-shape");
+  const path = document.createElementNS(SVG_NS, "path");
+  path.setAttribute("d", piecePath(r, c));
+  path.setAttribute("class", "fill");
+  path.setAttribute("vector-effect", "non-scaling-stroke");
+  g.appendChild(path);
+  g.addEventListener("click", () => toggle(i));
+  svg.appendChild(g);
+  shapes.push(g);
+
+  const cell = document.createElement("div");
+  cell.className = "cell";
+  cell.innerHTML = `<div class="num">0${i + 1}</div>
+    <div class="body"><div class="title"></div><div class="q"></div></div>`;
+  cell.querySelector(".title").textContent = p.t;
+  cell.querySelector(".q").textContent = p.q;
+  labels.appendChild(cell);
+  cells.push(cell);
+});
+
+const state = new Set();
+
+function render() {
+  PIECES.forEach((_, i) => {
+    const on = state.has(i);
+    shapes[i].classList.toggle("on", on);
+    cells[i].classList.toggle("on", on);
+  });
+  document.getElementById("count").textContent = `${state.size} of 6`;
+  document.getElementById("closing").classList.toggle("show", state.size === 6);
+}
+
+function toggle(i) { state.has(i) ? state.delete(i) : state.add(i); render(); }
+function next() { for (let i = 0; i < PIECES.length; i++) if (!state.has(i)) { state.add(i); break; } render(); }
+function back() { const on = [...state]; if (on.length) state.delete(on[on.length - 1]); render(); }
+
+document.getElementById("next").addEventListener("click", next);
+document.getElementById("back").addEventListener("click", back);
+document.getElementById("reset").addEventListener("click", () => { state.clear(); render(); });
+
+document.addEventListener("keydown", (e) => {
+  if (e.target.tagName === "BUTTON" && (e.key === " " || e.key === "Enter")) return;
+  if (e.key === " " || e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); next(); }
+  else if (e.key === "ArrowLeft" || e.key === "Backspace" || e.key === "PageUp") { e.preventDefault(); back(); }
+  else if (e.key.toLowerCase() === "r") { state.clear(); render(); }
+  else if (e.key >= "1" && e.key <= "6") toggle(Number(e.key) - 1);
+});
+
+// Open at a given step with a hash, e.g. #step-3 reveals the first three pieces.
+function fromHash() {
+  const m = /^#step-([0-6])$/.exec(location.hash || "");
+  if (!m) return;
+  state.clear();
+  for (let i = 0; i < Number(m[1]); i++) state.add(i);
+  render();
+}
+window.addEventListener("hashchange", fromHash);
+
+// Clean capture mode for exporting slide images from the local file: ?export=1
+if (location.search.indexOf("export=1") > -1) document.documentElement.setAttribute("data-export", "");
+
+render();
+fromHash();
+</script>
